@@ -1,4 +1,4 @@
-package DPMM
+package GS
 import scala.collection.parallel.CollectionConverters._
 import breeze.linalg.{DenseMatrix, DenseVector, det, inv, sum, trace}
 import breeze.numerics.constants.Pi

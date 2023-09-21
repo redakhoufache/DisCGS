@@ -1,4 +1,4 @@
-package DPMM
+package GS
 
 import Common.Tools.{mean, normalizeLogProbability, partitionToOrderedCount, sample}
 import breeze.linalg.{DenseMatrix, DenseVector, sum}
@@ -6,7 +6,7 @@ import breeze.numerics.log
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 
-class CollapsedGibbsSampler(workerID: Int,
+class WorkerCGS(workerID: Int,
                             indices: List[Int],
                             data: List[DenseVector[Double]],
                             prior: NormalInverseWishart = new NormalInverseWishart(),
@@ -134,12 +134,10 @@ class CollapsedGibbsSampler(workerID: Int,
   ///////////////////////
 
   def run(maxIter: Int = 1,
-          maxIterBurnin: Int = 1,
+          maxIterBurnin: Int = 0,
           verbose: Boolean = false): (Int, List[Int], List[(DenseVector[Double], DenseMatrix[Double])], List[Int], List[NormalInverseWishart]) = {
 
     var membershipEveryIteration = List(partition)
-    //   var componentEveryIteration = List(prior.posteriorSample(data, partition).map(e => MultivariateGaussian(e.mean, inv(e.covariance))))
-    // var likelihoodEveryIteration = List(prior.DPMMLikelihood(actualAlpha, data, partition, countCluster.toList, componentEveryIteration.head))
     var ssEveryIteration = List(computeSufficientStatistics(partition))
     @tailrec def go(iter: Int): Unit = {
 
@@ -153,17 +151,9 @@ class CollapsedGibbsSampler(workerID: Int,
 
         updatePartition()
 
-      //  val components = prior.posteriorSample(data, partition)
-        /*val likelihood = prior.DPMMLikelihood(actualAlpha,
-          data,
-          partition,
-          countCluster.toList,
-          components)*/
-        val ss = computeSufficientStatistics(partition)
+       val ss = computeSufficientStatistics(partition)
 
         membershipEveryIteration = membershipEveryIteration :+ partition
-     // componentEveryIteration = componentEveryIteration :+ components
-  //      likelihoodEveryIteration = likelihoodEveryIteration :+ likelihood
         ssEveryIteration = ssEveryIteration :+ ss
         go(iter + 1)
       }

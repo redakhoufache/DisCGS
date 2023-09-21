@@ -2,7 +2,7 @@ package Common
 import breeze.linalg.eigSym.EigSym
 import breeze.linalg.{DenseMatrix, DenseVector, eigSym, max, sum}
 import breeze.numerics.{exp, log}
-import breeze.stats.distributions.{Beta, Gamma, RandBasis}
+import breeze.stats.distributions.{Beta, Gamma}
 
 object Tools extends java.io.Serializable {
 

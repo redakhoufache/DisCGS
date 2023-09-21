@@ -1,4 +1,4 @@
-import DPMM.{DisDPM, NormalInverseWishart}
+import GS.{DisCGS, NormalInverseWishart}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.{SparkConf, SparkContext}
 import smile.validation.{NormalizedMutualInformation, adjustedRandIndex}
@@ -6,9 +6,9 @@ import org.json4s.DefaultFormats
 import org.json4s.jackson.Serialization.writePretty
 
 import java.io.{File, PrintWriter}
-import Common.Tools.{getDatasetInformation, mean}
+import Common.Tools.getDatasetInformation
 import org.json4s.native.JsonMethods
-import breeze.linalg.DenseVector
+import breeze.linalg.{DenseVector, linspace}
 
 import scala.io.Source
 
@@ -25,6 +25,8 @@ object Main {
     val nameDataset: String = args(0)
     val nbWorkers: Int = args(1).toInt
     val nRuns: Int = args(2).toInt
+    val computeLikelihood: Boolean = args(3).toBoolean
+
 
     val datasetsHandelInfo: Map[String, Map[String, Any]] = JsonMethods.parse(Source.fromFile("../datasets/experiences_config.json").reader()).extract[Map[String, Map[String, Any]]]
     val conf = new SparkConf().setMaster(s"local[$nbWorkers]").setAppName("Distributed Inference for DPMM")
@@ -68,7 +70,7 @@ object Main {
 
 
         val t0 = System.nanoTime()
-        val DisDPMM = new DisDPM(masterAlphaPrior = masterAlphaPrior, workerAlphaPrior = workerAlphaPrior, prior = prior, dataRDD = dataRDD, n = nObservations)
+        val DisDPMM = new DisCGS(masterAlphaPrior = masterAlphaPrior, workerAlphaPrior = workerAlphaPrior, prior = prior, dataRDD = dataRDD, n = nObservations, computeLikelihood = computeLikelihood)
         DisDPMM.run(nIter = 100)
         val t1 = System.nanoTime()
 
@@ -80,6 +82,15 @@ object Main {
         ariList = ariList :+ adjustedRandIndex(partitionEveryIteration.last.toArray, trueLabels.toArray)
         nmiList = nmiList :+ NormalizedMutualInformation.sum(partitionEveryIteration.last.toArray, trueLabels.toArray)
         infClustList = infClustList :+ partitionEveryIteration.last.max
+
+        println(s">>>>>> Launch: $run")
+        println(s"Runtime: ${runTimesList.last}")
+        println(s"ARI: ${ariList.last}")
+        println(s"NMI: ${nmiList.last}")
+        println(s"Number of inferred clusters: ${infClustList.last}")
+        if(computeLikelihood){
+        println(s"Log-likelihood: ${likelihoodsList.last.last}")
+        }
       }
 
       val results = Map(

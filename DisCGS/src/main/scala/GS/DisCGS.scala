@@ -1,18 +1,9 @@
-package DPMM
-import DPMM.{CollapsedGibbsSampler, MasterGibbsSampler, NormalInverseWishart}
+package GS
 import breeze.linalg.{DenseMatrix, DenseVector}
-import org.apache.log4j.{Level, Logger}
-import org.apache.spark.{SparkConf, SparkContext}
-import smile.validation.adjustedRandIndex
-import org.json4s.DefaultFormats
-import org.json4s.jackson.Serialization.writePretty
-
-import java.io.{File, PrintWriter}
-import Common.Tools.{convertIteratorToList, partitionToOrderedCount, strLineToDenseVector}
+import Common.Tools.{convertIteratorToList, partitionToOrderedCount}
 import org.apache.spark.rdd.RDD
-import org.sparkproject.dmg.pmml.False
 
-class DisDPM( dataRDD: RDD[(Int, DenseVector[Double])],
+class DisCGS( dataRDD: RDD[(Int, DenseVector[Double])],
               prior: NormalInverseWishart,
               n: Int,
               masterAlphaPrior: Double,
@@ -25,7 +16,7 @@ class DisDPM( dataRDD: RDD[(Int, DenseVector[Double])],
   // Initialize dpm in each worker
   val workersDPM = dataRDD.mapPartitionsWithIndex { (index, Data) => {
     val dataItList = convertIteratorToList(Data)
-    Iterator(new CollapsedGibbsSampler(workerID = index, indices = dataItList._1, data = dataItList._2, alpha = workerAlphaPrior, prior = prior))
+    Iterator(new WorkerCGS(workerID = index, indices = dataItList._1, data = dataItList._2, alpha = workerAlphaPrior, prior = prior))
   }
   }.persist
 
@@ -45,7 +36,7 @@ class DisDPM( dataRDD: RDD[(Int, DenseVector[Double])],
   while (it < nIter) {
 
     //Initialize DPM at master level
-    val masterDPMM = new MasterGibbsSampler(workerResults = processedResults, alpha = masterAlphaPrior, prior = prior)
+    val masterDPMM = new MasterCGS(workerResults = processedResults, alpha = masterAlphaPrior, prior = prior)
 
     // Run DPM at master level
     val masterResults = masterDPMM.run(1)
@@ -56,7 +47,7 @@ class DisDPM( dataRDD: RDD[(Int, DenseVector[Double])],
 
     workerResults = workersDPM.map(dpm => {
       dpm.updateDPMWithMasterResults(allResults)
-      List(dpm.run(10))
+      List(dpm.run(1))
     }).reduce((x, y) => x ++ y).sortBy(_._1)
 
     processedResults = List()
@@ -75,12 +66,13 @@ class DisDPM( dataRDD: RDD[(Int, DenseVector[Double])],
     if(computeLikelihood){
     val globalCounCluster: List[Int] = partitionToOrderedCount(partitionEveryIteration.last)
     val components = NIWParams.map(_.sample())
-    val likelihood = prior.DPMMLikelihood(masterAlphaPrior,
-      partitionEveryIteration.last.length,
-      partitionEveryIteration.last,
-      globalCounCluster,
-      components)
-    likelihoodEveryIteration = likelihoodEveryIteration :+ likelihood
+      val data: List[DenseVector[Double]] = dataRDD.collect().toList.map(_._2)
+      val likelihood = prior.likelihood(alpha = masterAlphaPrior,
+        data = data,
+        membership = partitionEveryIteration.last,
+        countCluster = globalCounCluster,
+        components = components)
+      likelihoodEveryIteration = likelihoodEveryIteration :+ likelihood
     }
     it = it + 1
   }

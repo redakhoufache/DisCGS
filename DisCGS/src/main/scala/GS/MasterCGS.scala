@@ -1,4 +1,4 @@
-package DPMM
+package GS
 import Common.Tools._
 import breeze.linalg.{DenseMatrix, DenseVector, sum}
 import breeze.numerics.log
@@ -9,7 +9,7 @@ import scala.collection.mutable.ListBuffer
 /** Implements the inference of a Dirichlet Process Mixture Model on a multivariate dataset of continuous observations.
  *
  */
-class MasterGibbsSampler(workerResults:List[(Int,Int, (DenseVector[Double], DenseMatrix[Double]), Int)],
+class MasterCGS(workerResults:List[(Int,Int, (DenseVector[Double], DenseMatrix[Double]), Int)],
                  alpha: Double, prior: NormalInverseWishart) extends Serializable {
 
   val n: Int = workerResults.length

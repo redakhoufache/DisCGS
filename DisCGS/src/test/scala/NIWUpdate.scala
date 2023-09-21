@@ -1,6 +1,6 @@
 
 import Common.Tools._
-import DPMM.NormalInverseWishart
+import GS.NormalInverseWishart
 import breeze.linalg.{DenseMatrix, DenseVector, inv}
 import breeze.numerics.log
 import breeze.stats.distributions.MultivariateGaussian
