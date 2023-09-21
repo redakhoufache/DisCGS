@@ -1,4 +1,4 @@
-# DisDPMM
+# DisCGS
 
 This code performs the distributed collapsed Gibbs sampler for Dirichlet Process Mixture Model inference.
 
