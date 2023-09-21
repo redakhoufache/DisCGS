@@ -41,7 +41,7 @@ Log-likelihood: -14915.09659745419
 
 ### Visualization
 
-![Clusters visualization](../figure.png)
+![Clusters visualization](figure.png)
 
 
 ### Analyse all results
