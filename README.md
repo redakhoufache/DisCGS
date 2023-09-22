@@ -1,5 +1,5 @@
 # DisCGS
-This repository contains our implementation of the distributed collapsed Gibbs sampler for Dirichlet Process Mixture Model inference, proposed in the paper "Distributed Collapsed Gibbs Sampler for Dirichlet Process Mixture Models in Federated Learning", (Under submission to SIAM International Conference on Data Mining (SDM24)).
+This repository contains our implementation of the distributed collapsed Gibbs sampler for Dirichlet Process Mixture Model inference, proposed in the paper *"Distributed Collapsed Gibbs Sampler for Dirichlet Process Mixture Models in Federated Learning"* (Under submission to SIAM International Conference on Data Mining (SDM24)).
 
 ### Building
 
