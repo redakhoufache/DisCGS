@@ -1,6 +1,11 @@
 # DisCGS
 This repository contains our implementation of the distributed collapsed Gibbs sampler for Dirichlet Process Mixture Model inference, proposed in the paper *"Distributed Collapsed Gibbs Sampler for Dirichlet Process Mixture Models in Federated Learning"* (Accepted to SIAM International Conference on Data Mining (SDM24)).
 
+### Requirements
+
+* Scala 2.13.0
+* Spark 3.3.0
+
 ### Building
 
 The script build.sh is provided to build an executable jar containing all the dependencies. 
